@@ -4,7 +4,10 @@
 
 Práctica de subnetting IPv4 para el **CCNA 200-301**, en español. La app te da un ejercicio, tú escribes la respuesta y te corrige **explicando el paso a paso**: la red en binario, el tamaño de bloque y de dónde sale cada número.
 
-![Ejercicio corregido con la explicación](docs/captura.png)
+<p>
+  <img src="docs/captura.png" alt="Ejercicio corregido: campos en rojo y verde y la franja inferior con 1 de 6 correctas" width="62%">
+  <img src="docs/movil.png" alt="La misma pantalla en el celular" width="30%">
+</p>
 
 ## Qué hace
 
@@ -19,6 +22,10 @@ Práctica de subnetting IPv4 para el **CCNA 200-301**, en español. La app te da
 | **Binario** | Un octeto de decimal a binario o al revés | Tabla de pesos 128…1 y la resta paso a paso |
 
 Cada tipo tiene tres dificultades. En fácil se usan redes `192.168.x.x` y prefijos desde /24; en difícil, cualquier red unicast y prefijos desde /8.
+
+### Formato de lección
+
+Una pregunta a la vez. Respondes y una **franja inferior** confirma («Todo correcto», en verde) o corrige («3 de 6 correctas», en rojo) antes de pasar al siguiente. La explicación queda debajo: se abre sola cuando hubo errores. Arriba hay una **meta diaria** de 10 ejercicios y una **racha** de días seguidos practicando, guardadas en el navegador.
 
 ### Modalidades
 
@@ -41,12 +48,16 @@ Corrige campo por campo y distingue respuestas incorrectas, vacías o mal escrit
 ## Cómo está hecho
 
 - [Next.js](https://nextjs.org) + TypeScript, sin backend ni base de datos.
+- [Tailwind CSS v4](https://tailwindcss.com) y componentes con la estructura de [shadcn/ui](https://ui.shadcn.com) (Radix UI): Select, ToggleGroup, Switch, Progress, Accordion y avisos con Sonner. Íconos de [Lucide](https://lucide.dev). El `components.json` está configurado para agregar más con `npx shadcn add`.
+- **Sistema de diseño** documentado en [`DESIGN.md`](DESIGN.md): colores con su rol (naranjo y azul del cable T568B), tipografía, espaciado y componentes. Los tokens viven en `app/globals.css` y las pantallas los usan por nombre.
+- **Accesibilidad:** auditada con axe-core (WCAG 2.1 AA, modo claro y oscuro, sin infracciones), navegable con teclado, contraste mínimo 4,5:1 y respeta `prefers-reduced-motion`.
 - La lógica está separada de la interfaz, en `lib/`:
   - [`lib/ipv4.ts`](lib/ipv4.ts): direcciones como enteros de 32 bits, máscaras, wildcards, red, broadcast y hosts.
   - [`lib/ejercicio.ts`](lib/ejercicio.ts): lo común a todos los ejercicios (campos, corrección y lectura de respuestas).
   - Un archivo por tipo: [`basico.ts`](lib/basico.ts), [`hosts.ts`](lib/hosts.ts), [`misma.ts`](lib/misma.ts), [`wildcard.ts`](lib/wildcard.ts) y [`binario.ts`](lib/binario.ts). Cada uno genera el ejercicio, lo corrige y calcula los datos de su explicación.
   - [`lib/tipos.ts`](lib/tipos.ts): registro de tipos y modo mixto. [`lib/examen.ts`](lib/examen.ts): armado y resumen del examen.
   - [`lib/azar.ts`](lib/azar.ts): números pseudoaleatorios reproducibles a partir de una semilla (FNV-1a + mulberry32).
+  - [`lib/progreso.ts`](lib/progreso.ts): racha de días y meta diaria.
 - **Tests con [Vitest](https://vitest.dev).** Los cálculos de `ipv4.ts` se comparan contra una implementación de referencia que trabaja con cadenas de bits, en 20.000 casos al azar más los extremos (`0.0.0.0`, `255.255.255.255`, /0, /32). Para cada tipo y dificultad se generan cientos de ejercicios y se verifica que su propia solución se corrija como correcta. Así la app nunca enseña una respuesta incorrecta.
 - GitHub Actions corre los tests y el build en cada push.
 
@@ -64,6 +75,7 @@ npm run build
 - [x] **Fase 1:** ejercicio básico con explicación, semilla en la URL, tests y CI.
 - [x] **Fase 2:** prefijo para N hosts, ¿misma subred?, wildcards y binario; modo mixto, cronómetro y modo examen.
 - [ ] **Fase 3:** VLSM, asignar subredes a varios departamentos desde un bloque.
+- [x] **Rediseño:** formato de lección, Tailwind + shadcn/ui, racha y meta diaria, DESIGN.md.
 - [ ] **Fase 4:** progreso por tipo de ejercicio e IPv6 (abreviación, prefijos /64 y EUI-64).
 
 ## Licencia

@@ -135,7 +135,7 @@ export const tipoWildcard: DefinicionTipo<DatosWildcard> = {
       };
     }
     return {
-      prefijo: corregirCampo(r.prefijo, esperado.prefijo, parsearMascara, mascara, "Escribe el prefijo como /26."),
+      prefijo: corregirCampo(r.prefijo, esperado.prefijo, parsearMascara, mascara, "Escribe el prefijo con barra, por ejemplo /24."),
       mascara: mascaraCorregida,
     };
   },

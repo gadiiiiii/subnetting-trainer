@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Entrenador de subnetting",
   description:
-    "Practica subnetting para el CCNA: calcula red, broadcast, rango de hosts y máscara, y revisa la explicación paso a paso.",
+    "Practica subnetting para el CCNA: calcula red, broadcast, rango de hosts, wildcards y binario, y revisa la explicación paso a paso.",
 };
 
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#eef2f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#10161d" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f151c" },
   ],
 };
 
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600;700&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

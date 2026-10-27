@@ -1,3 +1,6 @@
+"use client";
+
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { explicarBasico } from "@/lib/basico";
 import { explicarBinario } from "@/lib/binario";
 import { explicarHosts } from "@/lib/hosts";
@@ -10,7 +13,7 @@ import Misma from "./Misma";
 import Subred from "./Subred";
 import Wildcard from "./Wildcard";
 
-function Pasos({ ejercicio: e }: { ejercicio: Ejercicio }) {
+export function PasosDe({ ejercicio: e }: { ejercicio: Ejercicio }) {
   switch (e.tipo) {
     case "subred":
       return <Subred datos={explicarBasico(e.datos)} />;
@@ -25,11 +28,24 @@ function Pasos({ ejercicio: e }: { ejercicio: Ejercicio }) {
   }
 }
 
-export default function Explicacion({ ejercicio, titulo = "Cómo se resuelve" }: { ejercicio: Ejercicio; titulo?: string }) {
+/**
+ * Explicación plegable. Se abre sola cuando hubo errores; si todo estuvo
+ * bien queda cerrada, pero disponible.
+ */
+export default function Explicacion({ ejercicio, abierta }: { ejercicio: Ejercicio; abierta: boolean }) {
   return (
-    <section className="explicacion" aria-label={titulo}>
-      <h2>{titulo}</h2>
-      <Pasos ejercicio={ejercicio} />
-    </section>
+    <Accordion
+      type="single"
+      collapsible
+      defaultValue={abierta ? "explicacion" : undefined}
+      className="mt-8 border-t-2 border-foreground"
+    >
+      <AccordionItem value="explicacion">
+        <AccordionTrigger nivel={2} className="titulo py-5 text-2xl font-extrabold">Cómo se resuelve</AccordionTrigger>
+        <AccordionContent>
+          <PasosDe ejercicio={ejercicio} />
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

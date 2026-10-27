@@ -1,10 +1,34 @@
 "use client";
 
-import type { CampoDef, Correccion } from "@/lib/ejercicio";
+import { CheckIcon, XIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import type { CampoDef, Correccion, ResultadoCampo } from "@/lib/ejercicio";
+import { cn } from "@/lib/utils";
+
+function Nota({ id, r }: { id: string; r: ResultadoCampo }) {
+  const ok = r.estado === "correcto";
+  return (
+    <p id={id} className={cn("mt-1.5 flex items-start gap-1 text-sm font-semibold", ok ? "text-success" : "text-destructive")}>
+      {ok ? <CheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" /> : <XIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />}
+      <span>
+        {ok && "Correcto"}
+        {r.estado === "vacio" && "Sin respuesta. "}
+        {r.estado === "formato" && `${r.mensaje} `}
+        {!ok && (
+          <>
+            Era <span className="font-mono text-foreground">{r.esperado}</span>
+          </>
+        )}
+      </span>
+    </p>
+  );
+}
 
 /**
- * Campos de respuesta de un ejercicio. Puede mostrarse editable, con la
- * corrección campo por campo, o con la solución.
+ * Campos de respuesta. Pueden mostrarse editables, con la corrección campo
+ * por campo, o con la solución en modo solo lectura.
  */
 export default function Respuestas({
   campos,
@@ -18,10 +42,9 @@ export default function Respuestas({
   campos: CampoDef[];
   valores: Record<string, string>;
   onCambio?: (id: string, valor: string) => void;
-  /** Si viene, se colorea cada campo y se muestra la respuesta esperada. */
   correccion?: Correccion | null;
   soloLectura?: boolean;
-  /** Para que los id no se repitan cuando hay varios ejercicios en la página. */
+  /** Para que los id no se repitan si hay varios ejercicios en la página. */
   prefijoId?: string;
   /** Recibe el primer elemento enfocable, para mover el foco al empezar. */
   primerCampo?: React.RefObject<HTMLElement | null>;
@@ -29,70 +52,57 @@ export default function Respuestas({
   const marcarPrimero = (i: number) => (el: HTMLElement | null) => {
     if (i === 0 && primerCampo) primerCampo.current = el;
   };
-  const unSoloCampo = campos.length === 1;
+
   return (
-    <div className={`campos${unSoloCampo ? " campos-uno" : ""}`}>
+    <div className={cn("grid gap-x-5 gap-y-5", campos.length > 1 && "sm:grid-cols-2")}>
       {campos.map((c, i) => {
         const id = `${prefijoId}${c.id}`;
         const r = correccion?.[c.id];
         const valor = valores[c.id] ?? "";
-        const clase = r ? `campo campo-${r.estado}` : "campo";
-        const nota = r && (
-          <p id={`${id}-nota`} className="nota">
-            {r.estado === "correcto" && "Correcto"}
-            {r.estado === "incorrecto" && (
-              <>
-                Era <span className="valor">{r.esperado}</span>
-              </>
-            )}
-            {r.estado === "vacio" && (
-              <>
-                Sin respuesta. Era <span className="valor">{r.esperado}</span>
-              </>
-            )}
-            {r.estado === "formato" && (
-              <>
-                {r.mensaje} Era <span className="valor">{r.esperado}</span>
-              </>
-            )}
-          </p>
-        );
+        const ok = r?.estado === "correcto";
 
         if (c.entrada === "sino") {
           return (
-            <div key={c.id} className={`${clase} campo-sino`}>
-              <span className="etiqueta" id={`${id}-etiqueta`}>
+            <div key={c.id} className={cn(campos.length > 1 && "sm:col-span-2")}>
+              <p id={`${id}-etiqueta`} className="mb-1.5 text-sm font-semibold">
                 {c.etiqueta}
-              </span>
-              <div
-                className="sino"
-                role="radiogroup"
+              </p>
+              <ToggleGroup
+                type="single"
+                value={valor}
+                onValueChange={(v) => v && onCambio?.(c.id, v)}
+                disabled={soloLectura}
                 aria-labelledby={`${id}-etiqueta`}
                 aria-describedby={r ? `${id}-nota` : undefined}
+                className="gap-2 border-none bg-transparent p-0"
               >
                 {["Sí", "No"].map((opcion, j) => (
-                  <button
+                  <ToggleGroupItem
                     key={opcion}
-                    type="button"
-                    role="radio"
-                    aria-checked={valor === opcion}
-                    disabled={soloLectura}
-                    onClick={() => onCambio?.(c.id, opcion)}
+                    value={opcion}
                     ref={j === 0 ? marcarPrimero(i) : undefined}
+                    className={cn(
+                      "h-12 min-w-24 border-2 border-border bg-card text-base text-foreground disabled:opacity-100",
+                      r && valor === opcion && (ok ? "data-[state=on]:bg-success" : "data-[state=on]:bg-destructive"),
+                      r && valor === opcion && "data-[state=on]:border-transparent data-[state=on]:text-white dark:data-[state=on]:text-background",
+                      r?.estado === "vacio" && "border-destructive",
+                    )}
                   >
                     {opcion}
-                  </button>
+                  </ToggleGroupItem>
                 ))}
-              </div>
-              {nota}
+              </ToggleGroup>
+              {r && <Nota id={`${id}-nota`} r={r} />}
             </div>
           );
         }
 
         return (
-          <div key={c.id} className={clase}>
-            <label htmlFor={id}>{c.etiqueta}</label>
-            <input
+          <div key={c.id}>
+            <Label htmlFor={id} className="mb-1.5">
+              {c.etiqueta}
+            </Label>
+            <Input
               id={id}
               ref={marcarPrimero(i)}
               value={valor}
@@ -105,9 +115,10 @@ export default function Respuestas({
               spellCheck={false}
               placeholder={c.pista}
               aria-describedby={r ? `${id}-nota` : undefined}
-              aria-invalid={r && r.estado !== "correcto" ? true : undefined}
+              aria-invalid={r && !ok ? true : undefined}
+              className={cn(ok && "border-success bg-success-soft")}
             />
-            {nota}
+            {r && <Nota id={`${id}-nota`} r={r} />}
           </div>
         );
       })}

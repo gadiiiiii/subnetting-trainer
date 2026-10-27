@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link2Icon } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { nuevaSemilla } from "@/lib/azar";
 import { contarCorrectas, totalCampos, type Correccion, type Dificultad } from "@/lib/ejercicio";
 import { formatearTiempo } from "@/lib/examen";
@@ -15,12 +20,15 @@ import {
   type Seleccion,
 } from "@/lib/tipos";
 import { guardar, leer } from "./almacen";
-import Configuracion from "./Configuracion";
-import EnunciadoVista from "./EnunciadoVista";
+import BarraSuperior from "./BarraSuperior";
 import Explicacion from "./explicaciones/Explicacion";
-import Navegacion from "./Navegacion";
+import Franja, { type TonoFranja } from "./Franja";
+import MetaDiaria from "./MetaDiaria";
 import Reloj from "./Reloj";
 import Respuestas from "./Respuestas";
+import SelectorEjercicio from "./SelectorEjercicio";
+import TarjetaPregunta from "./TarjetaPregunta";
+import { useProgreso } from "./useProgreso";
 
 type Estado = "respondiendo" | "revisado" | "solucion";
 
@@ -43,9 +51,9 @@ export default function Practica({
   const [cronometro, setCronometro] = useState(false);
   const [inicio, setInicio] = useState<number | null>(null);
   const [fin, setFin] = useState<number | null>(null);
-  const [copiado, setCopiado] = useState(false);
   const primerCampo = useRef<HTMLElement | null>(null);
-  const siguiente = useRef<HTMLButtonElement>(null);
+  const continuar = useRef<HTMLButtonElement>(null);
+  const progreso = useProgreso();
 
   const ejercicio = useMemo(() => generarEjercicio(seleccion, semilla, dificultad), [seleccion, semilla, dificultad]);
   const defs = campos(ejercicio);
@@ -74,16 +82,17 @@ export default function Practica({
     setRespuestas({});
     setCorreccion(null);
     setEstado("respondiendo");
-    setCopiado(false);
+    window.scrollTo({ top: 0 });
     requestAnimationFrame(() => primerCampo.current?.focus());
+  }
+
+  function registrar() {
+    if (progreso.registrar().cumplioMeta) toast.success(`Cumpliste la meta de hoy: ${progreso.meta} ejercicios.`);
   }
 
   function enviar(e: React.FormEvent) {
     e.preventDefault();
-    if (terminado) {
-      nuevoEjercicio();
-      return;
-    }
+    if (terminado) return nuevoEjercicio();
     const ahora = Date.now();
     const c = corregir(ejercicio, respuestas);
     setCorreccion(c);
@@ -96,7 +105,8 @@ export default function Practica({
       segundos: s.segundos + (cronometro ? segundos : 0),
       cronometrados: s.cronometrados + (cronometro ? 1 : 0),
     }));
-    requestAnimationFrame(() => siguiente.current?.focus());
+    registrar();
+    requestAnimationFrame(() => continuar.current?.focus());
   }
 
   function verSolucion() {
@@ -104,7 +114,7 @@ export default function Practica({
     setEstado("solucion");
     setFin(Date.now());
     setSesion((s) => ({ ...s, resueltos: s.resueltos + 1 }));
-    requestAnimationFrame(() => siguiente.current?.focus());
+    requestAnimationFrame(() => continuar.current?.focus());
   }
 
   function alternarCronometro(activo: boolean) {
@@ -115,115 +125,138 @@ export default function Practica({
   async function copiarEnlace() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setCopiado(true);
+      toast("Enlace copiado: quien lo abra verá este mismo ejercicio.");
     } catch {
-      setCopiado(false);
+      toast.error("No se pudo copiar. Copia la dirección de la barra del navegador.");
     }
   }
 
+  // ── Franja inferior ──
   const correctas = correccion ? contarCorrectas(correccion) : 0;
   const total = defs.length;
+  const perfecto = estado === "revisado" && correctas === total;
   const segundosEjercicio = inicio && fin ? Math.round((fin - inicio) / 1000) : null;
 
-  let resumen = "";
-  if (estado === "solucion") resumen = "Esta es la solución. Revisa la explicación y prueba con el siguiente.";
-  else if (estado === "revisado")
-    resumen =
-      correctas === total
-        ? total === 1
-          ? "Correcto."
-          : "Todo correcto."
-        : `${correctas} de ${total} correctas. Revisa la explicación para ver dónde estuvo el error.`;
-  if (estado === "revisado" && cronometro && segundosEjercicio !== null)
-    resumen += ` Lo resolviste en ${formatearTiempo(segundosEjercicio)}.`;
+  let tono: TonoFranja = "neutro";
+  let mensaje: string | undefined;
+  let detalle: string | undefined;
+  if (estado === "solucion") {
+    tono = "solucion";
+    mensaje = "Esta es la solución";
+    detalle = "Revisa cómo se resuelve y prueba con el siguiente.";
+  } else if (estado === "revisado") {
+    tono = perfecto ? "correcto" : "incorrecto";
+    mensaje = perfecto ? (total === 1 ? "Correcto" : "Todo correcto") : `${correctas} de ${total} correctas`;
+    const partes = [];
+    if (cronometro && segundosEjercicio !== null) partes.push(`Lo resolviste en ${formatearTiempo(segundosEjercicio)}.`);
+    if (!perfecto) partes.push("La explicación está más abajo.");
+    detalle = partes.join(" ") || undefined;
+  }
 
   const lineaSesion =
     sesion.resueltos > 0
-      ? `En esta sesión: ${sesion.perfectos} de ${sesion.resueltos} ${sesion.resueltos === 1 ? "ejercicio" : "ejercicios"} sin errores` +
-        (sesion.cronometrados > 0
-          ? `, ${formatearTiempo(sesion.segundos / sesion.cronometrados)} en promedio.`
-          : ".")
-      : "";
+      ? `En esta sesión: ${sesion.perfectos} de ${sesion.resueltos} sin errores` +
+        (sesion.cronometrados > 0 ? `, ${formatearTiempo(sesion.segundos / sesion.cronometrados)} en promedio.` : ".")
+      : null;
 
   return (
-    <main>
-      <Navegacion actual="practica" />
+    <div className="min-h-dvh">
+      <BarraSuperior actual="practica" racha={progreso.listo ? progreso.racha : null} />
 
-      <Configuracion
-        seleccion={seleccion}
-        dificultad={dificultad}
-        onSeleccion={(s) => nuevoEjercicio({ seleccion: s })}
-        onDificultad={(d) => nuevoEjercicio({ dificultad: d })}
-      >
-        <label className="interruptor">
-          <input type="checkbox" checked={cronometro} onChange={(e) => alternarCronometro(e.target.checked)} />
-          <span>Cronómetro</span>
-        </label>
-      </Configuracion>
+      <main className="mx-auto max-w-[44rem] px-4 pt-5 pb-48 sm:pb-36">
+        <MetaDiaria hechos={progreso.hechosHoy} meta={progreso.meta} listo={progreso.listo} />
 
-      <section className="enunciado" aria-labelledby="titulo-ejercicio">
-        <div className="enunciado-cabecera">
-          <p className="enunciado-tipo">
-            {seleccion === "mixto" ? `Mixto: ${nombreSeleccion(ejercicio.tipo)}` : nombreSeleccion(seleccion)}
+        <div className="mt-5">
+          <SelectorEjercicio
+            seleccion={seleccion}
+            dificultad={dificultad}
+            onSeleccion={(s) => nuevoEjercicio({ seleccion: s })}
+            onDificultad={(d) => nuevoEjercicio({ dificultad: d })}
+          >
+            <div className="flex items-center gap-2">
+              <Switch id="cronometro" checked={cronometro} onCheckedChange={alternarCronometro} />
+              <Label htmlFor="cronometro">Cronómetro</Label>
+            </div>
+          </SelectorEjercicio>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {descripcionSeleccion(seleccion, dificultad)}.{lineaSesion && ` ${lineaSesion}`}
           </p>
-          {cronometro && inicio && <Reloj desde={inicio} hasta={fin} etiqueta="Tiempo en este ejercicio" />}
         </div>
-        <EnunciadoVista enunciado={enunciado(ejercicio)} id="titulo-ejercicio" />
-        <p className="enunciado-meta">
-          {descripcionSeleccion(seleccion, dificultad)}. {lineaSesion}
-        </p>
-      </section>
 
-      <form className="respuestas" onSubmit={enviar} noValidate>
-        <Respuestas
-          key={`${ejercicio.tipo}-${semilla}`}
-          campos={defs}
-          valores={estado === "solucion" ? solucion(ejercicio) : respuestas}
-          onCambio={(id, v) => setRespuestas((r) => ({ ...r, [id]: v }))}
-          correccion={estado === "revisado" ? correccion : null}
-          soloLectura={terminado}
-          primerCampo={primerCampo}
-        />
+        <div className="mt-6">
+          <TarjetaPregunta
+            tipo={seleccion === "mixto" ? `Mixto: ${nombreSeleccion(ejercicio.tipo)}` : nombreSeleccion(seleccion)}
+            enunciado={enunciado(ejercicio)}
+            extra={
+              <>
+                {cronometro && inicio && <Reloj desde={inicio} hasta={fin} etiqueta="Tiempo en este ejercicio" />}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={copiarEnlace}
+                  aria-label="Copiar enlace a este ejercicio"
+                  title="Copiar enlace a este ejercicio"
+                  className="size-11 text-muted-foreground hover:text-primary"
+                >
+                  <Link2Icon className="size-5" />
+                </Button>
+              </>
+            }
+          />
+        </div>
+
+        <form id="form-ejercicio" className="mt-6" onSubmit={enviar} noValidate>
+          <Respuestas
+            key={`${ejercicio.tipo}-${semilla}`}
+            campos={defs}
+            valores={estado === "solucion" ? solucion(ejercicio) : respuestas}
+            onCambio={(id, v) => setRespuestas((r) => ({ ...r, [id]: v }))}
+            correccion={estado === "revisado" ? correccion : null}
+            soloLectura={terminado}
+            primerCampo={primerCampo}
+          />
+        </form>
 
         {terminado && (
-          <div
-            className={`resumen ${estado === "revisado" && correctas === total ? "resumen-perfecto" : ""}`}
-            role="status"
-          >
-            {resumen}
-          </div>
+          <Explicacion key={`${ejercicio.tipo}-${semilla}`} ejercicio={ejercicio} abierta={!perfecto} />
         )}
 
-        <div className="acciones">
-          {terminado ? (
-            <button ref={siguiente} type="submit" className="primario">
-              Siguiente ejercicio
-            </button>
+        <p className="mt-12 border-t border-border pt-4 text-sm text-muted-foreground">
+          Cada ejercicio sale de una semilla que queda en la dirección de la página: si compartes el enlace, la otra
+          persona ve el mismo ejercicio. La máscara se puede escribir como <code className="font-mono">255.255.255.224</code>{" "}
+          o <code className="font-mono">/27</code>.
+        </p>
+
+      <Franja
+        tono={tono}
+        mensaje={mensaje}
+        detalle={detalle}
+        acciones={
+          terminado ? (
+            <Button
+              key="continuar"
+              ref={continuar}
+              type="submit"
+              form="form-ejercicio"
+              size="lg"
+              variant={tono === "correcto" ? "success" : "default"}
+            >
+              Continuar
+            </Button>
           ) : (
             <>
-              <button type="submit" className="primario">
-                Revisar
-              </button>
-              <button type="button" className="secundario" onClick={verSolucion}>
+              <Button key="solucion" type="button" variant="outline" size="lg" onClick={verSolucion}>
                 Ver solución
-              </button>
+              </Button>
+              <Button key="revisar" type="submit" form="form-ejercicio" size="lg">
+                Revisar
+              </Button>
             </>
-          )}
-          <button type="button" className="enlace" onClick={copiarEnlace}>
-            {copiado ? "Enlace copiado" : "Copiar enlace a este ejercicio"}
-          </button>
-        </div>
-      </form>
-
-      {terminado && <Explicacion ejercicio={ejercicio} />}
-
-      <footer className="pie">
-        <p>
-          Cada ejercicio sale de una semilla que queda en la dirección de la página: si compartes el
-          enlace, la otra persona ve el mismo ejercicio. La máscara se puede escribir como{" "}
-          <code>255.255.255.224</code> o <code>/27</code>.
-        </p>
-      </footer>
-    </main>
+          )
+        }
+      />
+      </main>
+    </div>
   );
 }

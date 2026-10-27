@@ -123,7 +123,7 @@ export const tipoHosts: DefinicionTipo<DatosHosts> = {
     const esperado = this.solucion(d);
     const mascara = mascaraDesdePrefijo(d.prefijo);
     return {
-      prefijo: corregirCampo(r.prefijo, esperado.prefijo, parsearMascara, mascara, "Escribe el prefijo como /26."),
+      prefijo: corregirCampo(r.prefijo, esperado.prefijo, parsearMascara, mascara, "Escribe el prefijo con barra, por ejemplo /24."),
       mascara: corregirCampo(r.mascara, esperado.mascara, parsearMascara, mascara, MENSAJES.mascara),
       hosts: corregirCampo(r.hosts, esperado.hosts, parsearHosts, hostsUtilizablesClasico(32 - d.prefijo), MENSAJES.hosts),
     };

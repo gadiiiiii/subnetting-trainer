@@ -1,6 +1,7 @@
-import type { ExplicacionMisma } from "@/lib/misma";
 import { formatearIPv4 } from "@/lib/ipv4";
-import TiraBits from "../TiraBits";
+import type { ExplicacionMisma } from "@/lib/misma";
+import TiraBits, { LeyendaBits } from "../TiraBits";
+import { Paso, Pasos } from "./Paso";
 
 const ORDINAL = ["", "primer", "segundo", "tercer", "cuarto"];
 
@@ -20,12 +21,11 @@ export default function Misma({ datos: x }: { datos: ExplicacionMisma }) {
     : [];
 
   return (
-    <ol className="pasos">
-      <li>
-        <h3>Calcula la red de cada una</h3>
+    <Pasos>
+      <Paso titulo="Calcula la red de cada una">
         <p>
-          Las dos usan /{x.prefijo}, así que se les aplica la misma máscara ({x.a.solucion.mascara}).
-          Un AND entre cada IP y la máscara da su dirección de red.
+          Las dos usan /{x.prefijo}, así que se les aplica la misma máscara ({x.a.solucion.mascara}). Un AND entre cada
+          IP y la máscara da su dirección de red.
         </p>
         <TiraBits
           prefijo={x.prefijo}
@@ -37,16 +37,12 @@ export default function Misma({ datos: x }: { datos: ExplicacionMisma }) {
             { etiqueta: "Red de B", bits: x.b.redBits, decimal: x.b.solucion.red, destacada: true },
           ]}
         />
-        <p className="leyenda-bits">
-          <span className="muestra muestra-red" /> bits de red
-          <span className="muestra muestra-host" /> bits de host
-        </p>
+        <LeyendaBits />
         <p>Basta con comparar los bits naranjos: si son iguales, están en la misma subred.</p>
-      </li>
+      </Paso>
 
       {oa && ob && (
-        <li>
-          <h3>Con el atajo decimal</h3>
+        <Paso titulo="Con el atajo decimal">
           <p>
             En el {ORDINAL[oa.posicion]} octeto el tamaño de bloque es 256 − {oa.valorMascara} ={" "}
             <strong>{oa.bloque}</strong>. PC A tiene {oa.valorIp} en ese octeto, que cae en el bloque{" "}
@@ -62,33 +58,27 @@ export default function Misma({ datos: x }: { datos: ExplicacionMisma }) {
           {anteriores.length > 0 && (
             <p>
               Ojo: además cambian los octetos anteriores (
-              {anteriores.map((d, i) => (
-                <span key={d.posicion}>
-                  {i > 0 && ", "}
-                  {ORDINAL[d.posicion]} octeto: {d.a} y {d.b}
-                </span>
-              ))}
-              ), así que las redes no pueden coincidir aunque los bloques se parezcan.
+              {anteriores.map((d) => `${ORDINAL[d.posicion]} octeto: ${d.a} y ${d.b}`).join(", ")}), así que las redes
+              no pueden coincidir aunque los bloques se parezcan.
             </p>
           )}
-        </li>
+        </Paso>
       )}
 
-      <li>
-        <h3>Conclusión</h3>
+      <Paso titulo="Conclusión">
         {x.misma ? (
           <p>
-            Las dos redes son <code>{x.a.solucion.red}</code>: están en la <strong>misma subred</strong> y
-            se comunican directamente, sin router.
+            Las dos redes son <code>{x.a.solucion.red}</code>: están en la <strong>misma subred</strong> y se comunican
+            directamente, sin router.
           </p>
         ) : (
           <p>
             Las redes son distintas (<code>{x.a.solucion.red}</code> y <code>{x.b.solucion.red}</code>):{" "}
-            <strong>no están en la misma subred</strong>. Para comunicarse necesitan un router, y cada PC
-            envía el tráfico a su puerta de enlace.
+            <strong>no están en la misma subred</strong>. Para comunicarse necesitan un router, y cada PC envía el
+            tráfico a su puerta de enlace.
           </p>
         )}
-      </li>
-    </ol>
+      </Paso>
+    </Pasos>
   );
 }
