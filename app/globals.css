@@ -586,3 +586,604 @@ button.enlace {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Navegación y configuración ── */
+
+.modos {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.modos a {
+  color: var(--tinta-suave);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.25rem 0;
+  border-bottom: 3px solid transparent;
+}
+
+.modos a:hover {
+  color: var(--tinta);
+}
+
+.modos a[aria-current="page"] {
+  color: var(--tinta);
+  border-bottom-color: var(--red);
+}
+
+.configuracion {
+  padding: 1.25rem 0 0;
+}
+
+.tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tipos button {
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  padding: 0.35rem 0.8rem;
+  min-height: 2.25rem;
+  border-radius: 999px;
+  font-weight: 500;
+  color: var(--tinta-suave);
+}
+
+.tipos button:hover {
+  color: var(--tinta);
+  border-color: var(--tinta-suave);
+}
+
+.tipos button[aria-checked="true"] {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--fondo);
+  font-weight: 600;
+}
+
+.tipos .tipo-mixto {
+  border-style: dashed;
+}
+
+.tipos .tipo-mixto[aria-checked="true"] {
+  border-style: solid;
+}
+
+.configuracion-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 2.25rem;
+}
+
+.interruptor input {
+  appearance: none;
+  width: 2.5rem;
+  height: 1.4rem;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--linea);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.interruptor input::after {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--superficie);
+  transition: transform 0.15s;
+}
+
+.interruptor input:checked {
+  background: var(--red);
+}
+
+.interruptor input:checked::after {
+  transform: translateX(1.1rem);
+}
+
+/* ── Enunciado: variantes ── */
+
+.enunciado-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.enunciado-tipo {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.reloj {
+  font-family: var(--mono);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.1rem 0.6rem;
+  border-radius: 6px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+}
+
+.reloj-detenido {
+  background: var(--red-fondo);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+h1.varias .direccion {
+  font-size: clamp(1.7rem, 6.5vw, 2.6rem);
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.direccion-etiqueta {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--tinta-suave);
+  min-width: 4.5rem;
+}
+
+.enunciado-nota {
+  margin-top: 0.75rem;
+  max-width: 38rem;
+}
+
+/* ── Campos: variantes ── */
+
+.campos-uno {
+  grid-template-columns: minmax(0, 22rem);
+}
+
+.campo .etiqueta {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin-bottom: 0.3rem;
+}
+
+.sino {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.sino button {
+  min-width: 5rem;
+  min-height: 3rem;
+  border: 2px solid var(--linea);
+  background: var(--superficie);
+}
+
+.sino button:hover:not(:disabled) {
+  border-color: var(--tinta-suave);
+}
+
+.sino button[aria-checked="true"] {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--fondo);
+}
+
+.sino button:disabled {
+  cursor: default;
+}
+
+.campo-correcto .sino button[aria-checked="true"] {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: var(--superficie);
+}
+
+.campo-incorrecto .sino button[aria-checked="true"],
+.campo-vacio .sino button {
+  border-color: var(--error);
+}
+
+.campo-incorrecto .sino button[aria-checked="true"] {
+  background: var(--error);
+  color: var(--superficie);
+}
+
+/* ── Explicaciones de los nuevos tipos ── */
+
+.tabla-intentos {
+  margin-top: 0.85rem;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabla-intentos th,
+.tabla-intentos td {
+  padding: 0.5rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--linea);
+}
+
+.tabla-intentos th {
+  font-size: 0.8125rem;
+  color: var(--tinta-suave);
+}
+
+.tabla-intentos tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-intentos .no-alcanza td:last-child {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.tabla-intentos .alcanza td:last-child {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.restas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.resta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 5.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  font-family: var(--mono);
+}
+
+.resta-operacion {
+  font-size: 0.8125rem;
+  color: var(--tinta-suave);
+}
+
+.resta-resultado {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--host);
+}
+
+.comando {
+  margin: 0.75rem 0 0;
+  padding: 0.85rem 1rem;
+  background: var(--tinta);
+  color: var(--fondo);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.comando code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-weight: 600;
+}
+
+.tabla-pesos-scroll {
+  overflow-x: auto;
+  margin-top: 0.85rem;
+}
+
+.tabla-pesos {
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-family: var(--mono);
+}
+
+.tabla-pesos th {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 0.8125rem;
+  color: var(--tinta-suave);
+  text-align: left;
+  padding-right: 0.5rem;
+}
+
+.tabla-pesos td {
+  min-width: 2.6rem;
+  text-align: center;
+  padding: 0.35rem 0.2rem;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 4px;
+  font-size: 0.9375rem;
+}
+
+.tabla-pesos td.bit-uno {
+  background: var(--red-fondo);
+  border-color: var(--red);
+  color: var(--red);
+  font-weight: 700;
+}
+
+.tabla-pesos td.bit-cero {
+  color: var(--tinta-suave);
+}
+
+.tabla-pesos .fila-resto td {
+  background: none;
+  border-color: transparent;
+  font-size: 0.8125rem;
+  color: var(--tinta-suave);
+}
+
+.restas-binario {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+}
+
+.restas-binario li + li {
+  margin-top: 0.15rem;
+}
+
+/* ── Examen ── */
+
+.portada-examen,
+.resultado-examen {
+  padding: 2.5rem 0 0;
+}
+
+.portada-examen h1,
+.resultado-examen h1 {
+  font-weight: 400;
+}
+
+.resultado-examen h1:focus {
+  outline: none;
+}
+
+.portada-detalle {
+  margin-top: 0.75rem;
+  max-width: 38rem;
+}
+
+.reglas {
+  margin: 1.25rem 0 0;
+  padding-left: 1.2rem;
+  max-width: 38rem;
+  color: var(--tinta-suave);
+}
+
+.reglas li + li {
+  margin-top: 0.3rem;
+}
+
+.record {
+  margin-top: 1.25rem;
+  font-weight: 600;
+}
+
+.record-nuevo {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  background: var(--ok-fondo);
+  color: var(--ok);
+}
+
+.barra-examen {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding-top: 1.5rem;
+}
+
+.progreso-texto {
+  font-weight: 600;
+}
+
+.progreso {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--linea);
+  overflow: hidden;
+}
+
+.progreso-relleno {
+  height: 100%;
+  background: var(--red);
+  transition: width 0.25s;
+}
+
+.ayuda-acciones {
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+}
+
+.cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  margin: 1.5rem 0 0;
+}
+
+.cifras dt {
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+}
+
+.cifras dd {
+  margin: 0.1rem 0 0;
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cifra-detalle {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--tinta-suave);
+}
+
+.revision {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--tinta);
+}
+
+.revision > h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.lista-resultados {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.lista-resultados > li {
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-left: 4px solid var(--ok);
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+}
+
+.lista-resultados > li.resultado-error {
+  border-left-color: var(--error);
+}
+
+.lista-resultados summary {
+  display: grid;
+  grid-template-columns: 1.75rem 1fr auto auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.lista-resultados summary::-webkit-details-marker {
+  display: none;
+}
+
+.resultado-numero {
+  font-weight: 700;
+  color: var(--tinta-suave);
+}
+
+.resultado-pregunta {
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+}
+
+.resultado-valores {
+  font-family: var(--mono);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.resultado-puntaje {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.resultado-ok .resultado-puntaje {
+  color: var(--ok);
+}
+
+.resultado-error .resultado-puntaje {
+  color: var(--error);
+}
+
+.resultado-tiempo {
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+}
+
+.resultado-detalle {
+  padding: 0.25rem 1rem 1rem;
+  border-top: 1px solid var(--linea);
+}
+
+.resultado-detalle .campos {
+  margin-top: 1rem;
+}
+
+.resultado-detalle .explicacion {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--linea);
+}
+
+.resultado-detalle .explicacion h2 {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 34rem) {
+  h1.varias .direccion {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .lista-resultados summary {
+    grid-template-columns: 1.5rem 1fr auto;
+  }
+
+  .resultado-tiempo {
+    grid-column: 2;
+  }
+
+  .campos-uno {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 34rem) {
+  .tabla-pesos {
+    border-spacing: 2px;
+  }
+
+  .tabla-pesos td {
+    min-width: 0;
+    width: 2.05rem;
+    padding: 0.3rem 0;
+    font-size: 0.8125rem;
+  }
+
+  .tabla-pesos th {
+    padding-right: 0.25rem;
+    font-size: 0.75rem;
+  }
+}

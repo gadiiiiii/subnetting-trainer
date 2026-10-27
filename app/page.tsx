@@ -1,19 +1,22 @@
-import Entrenador from "./Entrenador";
+import Practica from "./Practica";
 import { esSemillaValida, nuevaSemilla } from "@/lib/azar";
-import { esDificultad } from "@/lib/basico";
+import { esDificultad } from "@/lib/ejercicio";
+import { esSeleccion } from "@/lib/tipos";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ s?: string; n?: string }>;
+  searchParams: Promise<{ t?: string; n?: string; s?: string }>;
 }) {
-  const { s, n } = await searchParams;
+  const { t, n, s } = await searchParams;
   return (
-    <Entrenador
-      semillaInicial={esSemillaValida(s) ? s : nuevaSemilla()}
+    <Practica
+      // Sin tipo en la URL se asume el ejercicio de subred, para que los enlaces antiguos sigan funcionando.
+      seleccionInicial={esSeleccion(t) ? t : "subred"}
       dificultadInicial={esDificultad(n) ? n : "facil"}
+      semillaInicial={esSemillaValida(s) ? s : nuevaSemilla()}
     />
   );
 }

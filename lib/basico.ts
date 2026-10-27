@@ -1,30 +1,65 @@
 import { crearAzar } from "./azar";
 import {
-  calcularSubred,
-  desdeOctetos,
-  formatearIPv4,
-  mascaraDesdePrefijo,
-  octetos,
-  parsearIPv4,
-  prefijoDesdeMascara,
-  type IPv4,
-} from "./ipv4";
+  MENSAJES,
+  RANGO_PREFIJO,
+  contarCorrectas,
+  corregirCampo,
+  formatearHosts,
+  parsearHosts,
+  parsearMascara,
+  type CampoDef,
+  type Correccion,
+  type DefinicionTipo,
+  type Dificultad,
+  type ResultadoCampo,
+} from "./ejercicio";
+import { calcularSubred, desdeOctetos, formatearIPv4, octetos, parsearIPv4, type IPv4 } from "./ipv4";
+
+export { contarCorrectas, formatearHosts, parsearHosts, parsearMascara };
+export type { Correccion, Dificultad, ResultadoCampo };
 
 /**
  * Ejercicio básico: dada una dirección con prefijo, calcular máscara, red,
  * broadcast, primer y último host, y cantidad de hosts utilizables.
  */
 
-export type Dificultad = "facil" | "media" | "dificil";
-
-export const DIFICULTADES: Record<Dificultad, { nombre: string; descripcion: string }> = {
-  facil: { nombre: "Fácil", descripcion: "Redes 192.168.x.x, prefijos /24 a /30" },
-  media: { nombre: "Media", descripcion: "Redes 172.16–31.x.x, prefijos /16 a /30" },
-  dificil: { nombre: "Difícil", descripcion: "Cualquier red unicast, prefijos /8 a /30" },
+export const DESCRIPCION_REDES: Record<Dificultad, string> = {
+  facil: "Redes 192.168.x.x, prefijos /24 a /30",
+  media: "Redes 172.16–31.x.x, prefijos /16 a /30",
+  dificil: "Cualquier red unicast, prefijos /8 a /30",
 };
 
-export function esDificultad(valor: unknown): valor is Dificultad {
-  return valor === "facil" || valor === "media" || valor === "dificil";
+/**
+ * Una dirección de host al azar según la dificultad, con su prefijo.
+ * La comparten los tipos que parten de una IP (subred, misma subred, wildcard).
+ */
+export function direccionAlAzar(
+  azar: ReturnType<typeof crearAzar>,
+  dificultad: Dificultad,
+  rango: [number, number] = RANGO_PREFIJO[dificultad],
+): { ip: IPv4; prefijo: number } {
+  let primeros: [number, number];
+  if (dificultad === "facil") {
+    primeros = [192, 168];
+  } else if (dificultad === "media") {
+    primeros = [172, azar.entero(16, 31)];
+  } else {
+    // Unicast de clases A, B y C, sin 0.x.x.x ni el loopback 127.x.x.x.
+    let primero: number;
+    do primero = azar.entero(1, 223);
+    while (primero === 127);
+    primeros = [primero, azar.entero(0, 255)];
+  }
+  const prefijo = azar.entero(rango[0], rango[1]);
+
+  // Que no sea la dirección de red ni la de broadcast.
+  let ip: IPv4;
+  do {
+    ip = desdeOctetos([...primeros, azar.entero(0, 255), azar.entero(0, 255)]);
+    const s = calcularSubred(ip, prefijo);
+    if (ip !== s.red && ip !== s.broadcast) break;
+  } while (true);
+  return { ip, prefijo };
 }
 
 export interface EjercicioBasico {
@@ -37,32 +72,7 @@ export interface EjercicioBasico {
 /** Genera siempre el mismo ejercicio para la misma semilla y dificultad. */
 export function generarBasico(semilla: string, dificultad: Dificultad): EjercicioBasico {
   const azar = crearAzar(`basico:${dificultad}:${semilla}`);
-  let primeros: [number, number];
-  let prefijo: number;
-
-  if (dificultad === "facil") {
-    primeros = [192, 168];
-    prefijo = azar.entero(24, 30);
-  } else if (dificultad === "media") {
-    primeros = [172, azar.entero(16, 31)];
-    prefijo = azar.entero(16, 30);
-  } else {
-    // Unicast de clases A, B y C, sin 0.x.x.x ni el loopback 127.x.x.x.
-    let primero: number;
-    do primero = azar.entero(1, 223);
-    while (primero === 127);
-    primeros = [primero, azar.entero(0, 255)];
-    prefijo = azar.entero(8, 30);
-  }
-
-  // Elige una dirección de host: que no sea la de red ni la de broadcast.
-  let ip: IPv4;
-  do {
-    ip = desdeOctetos([...primeros, azar.entero(0, 255), azar.entero(0, 255)]);
-    const s = calcularSubred(ip, prefijo);
-    if (ip !== s.red && ip !== s.broadcast) break;
-  } while (true);
-
+  const { ip, prefijo } = direccionAlAzar(azar, dificultad);
   return { semilla, dificultad, ip, prefijo };
 }
 
@@ -80,13 +90,6 @@ export const ETIQUETAS: Record<Campo, string> = {
 
 export type Respuestas = Record<Campo, string>;
 
-export type ResultadoCampo =
-  | { estado: "correcto"; esperado: string }
-  | { estado: "incorrecto"; esperado: string }
-  | { estado: "vacio"; esperado: string }
-  | { estado: "formato"; esperado: string; mensaje: string };
-
-export type Correccion = Record<Campo, ResultadoCampo>;
 
 export function solucionBasico(e: EjercicioBasico): Record<Campo, string> {
   const s = calcularSubred(e.ip, e.prefijo);
@@ -100,65 +103,20 @@ export function solucionBasico(e: EjercicioBasico): Record<Campo, string> {
   };
 }
 
-export function formatearHosts(n: number): string {
-  return new Intl.NumberFormat("es-CL").format(n);
-}
-
-/** Lee un número de hosts escrito con o sin separadores de miles: "524.286", "524 286", "30 hosts". */
-export function parsearHosts(texto: string): number | null {
-  const limpio = texto.trim().replace(/\s*hosts?$/i, "").replace(/[.\s,]/g, "");
-  return /^\d{1,10}$/.test(limpio) ? Number(limpio) : null;
-}
-
-/** Lee una máscara como "255.255.255.224", "/27" o "27". */
-export function parsearMascara(texto: string): number | null {
-  const t = texto.trim();
-  const prefijo = /^\/?(\d{1,2})$/.exec(t);
-  if (prefijo) {
-    const p = Number(prefijo[1]);
-    return p <= 32 ? mascaraDesdePrefijo(p) : null;
-  }
-  const ip = parsearIPv4(t);
-  return ip !== null && prefijoDesdeMascara(ip) !== null ? ip : null;
-}
-
 export function corregirBasico(e: EjercicioBasico, respuestas: Partial<Respuestas>): Correccion {
   const s = calcularSubred(e.ip, e.prefijo);
   const esperado = solucionBasico(e);
-  const resultado = {} as Correccion;
-
+  const resultado: Correccion = {};
   for (const campo of CAMPOS) {
-    const texto = (respuestas[campo] ?? "").trim();
-    if (!texto) {
-      resultado[campo] = { estado: "vacio", esperado: esperado[campo] };
-      continue;
-    }
-
-    let valor: number | null;
-    let correcto: number;
-    let mensaje: string;
-    if (campo === "hosts") {
-      valor = parsearHosts(texto);
-      correcto = s.hosts;
-      mensaje = "Escribe solo el número, por ejemplo 30.";
-    } else if (campo === "mascara") {
-      valor = parsearMascara(texto);
-      correcto = s.mascara;
-      mensaje = "Escribe la máscara como 255.255.255.224 o /27.";
-    } else {
-      valor = parsearIPv4(texto);
-      correcto = s[campo];
-      mensaje = "Escribe una dirección como 192.168.1.0.";
-    }
-
-    if (valor === null) resultado[campo] = { estado: "formato", esperado: esperado[campo], mensaje };
-    else resultado[campo] = { estado: valor === correcto ? "correcto" : "incorrecto", esperado: esperado[campo] };
+    const texto = respuestas[campo];
+    resultado[campo] =
+      campo === "hosts"
+        ? corregirCampo(texto, esperado.hosts, parsearHosts, s.hosts, MENSAJES.hosts)
+        : campo === "mascara"
+          ? corregirCampo(texto, esperado.mascara, parsearMascara, s.mascara, MENSAJES.mascara)
+          : corregirCampo(texto, esperado[campo], parsearIPv4, s[campo], MENSAJES.ip);
   }
   return resultado;
-}
-
-export function contarCorrectas(c: Correccion): number {
-  return CAMPOS.filter((campo) => c[campo].estado === "correcto").length;
 }
 
 /**
@@ -232,3 +190,32 @@ export function explicarBasico(e: EjercicioBasico): Explicacion {
     solucion: solucionBasico(e),
   };
 }
+
+const PISTAS: Record<Campo, string> = {
+  mascara: "255.255.255.0",
+  red: "0.0.0.0",
+  broadcast: "0.0.0.0",
+  primerHost: "0.0.0.0",
+  ultimoHost: "0.0.0.0",
+  hosts: "0",
+};
+
+export const tipoSubred: DefinicionTipo<EjercicioBasico> = {
+  nombre: "Subred",
+  descripcion: DESCRIPCION_REDES,
+  generar: generarBasico,
+  enunciado: (e) => ({
+    pregunta: "Calcula la subred de",
+    lineas: [{ valor: formatearIPv4(e.ip), acento: `/${e.prefijo}` }],
+  }),
+  campos: (): CampoDef[] =>
+    CAMPOS.map((id) => ({
+      id,
+      etiqueta: ETIQUETAS[id],
+      pista: PISTAS[id],
+      entrada: "texto",
+      teclado: id === "mascara" ? "text" : "decimal",
+    })),
+  solucion: solucionBasico,
+  corregir: corregirBasico,
+};

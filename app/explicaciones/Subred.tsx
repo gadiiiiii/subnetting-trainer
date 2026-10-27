@@ -1,7 +1,7 @@
 import type { Explicacion as Datos } from "@/lib/basico";
 import { formatearHosts } from "@/lib/basico";
 import { formatearIPv4 } from "@/lib/ipv4";
-import TiraBits from "./TiraBits";
+import TiraBits from "../TiraBits";
 
 const ORDINAL = ["", "primer", "segundo", "tercer", "cuarto"];
 
@@ -9,7 +9,7 @@ function decimal(bits: string) {
   return formatearIPv4(parseInt(bits, 2));
 }
 
-function Bloques({ x }: { x: NonNullable<Datos["octetoInteresante"]> }) {
+export function Bloques({ x }: { x: NonNullable<Datos["octetoInteresante"]> }) {
   const tramos = [x.inicio - x.bloque, x.inicio, x.inicio + x.bloque].filter((v) => v >= 0 && v <= 255);
   return (
     <div className="bloques" aria-hidden="true">
@@ -36,15 +36,13 @@ function Bloques({ x }: { x: NonNullable<Datos["octetoInteresante"]> }) {
   );
 }
 
-export default function Explicacion({ datos: x }: { datos: Datos }) {
+export default function Subred({ datos: x }: { datos: Datos }) {
   const oi = x.octetoInteresante;
   const potencia = formatearHosts(2 ** x.bitsHost);
   const especial = x.prefijo >= 31;
 
   return (
-    <section className="explicacion" aria-labelledby="titulo-explicacion">
-      <h2 id="titulo-explicacion">Cómo se resuelve</h2>
-      <ol className="pasos">
+    <ol className="pasos">
         <li>
           <h3>Del prefijo a la máscara</h3>
           <p>
@@ -128,7 +126,6 @@ export default function Explicacion({ datos: x }: { datos: Datos }) {
             </p>
           )}
         </li>
-      </ol>
-    </section>
+    </ol>
   );
 }
