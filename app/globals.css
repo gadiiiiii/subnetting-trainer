@@ -1,0 +1,588 @@
+/*
+ * Paleta tomada del código de colores T568B del cable de red:
+ * naranjo para los bits de red, azul para los de host.
+ */
+:root {
+  --fondo: #eef2f6;
+  --superficie: #ffffff;
+  --tinta: #172230;
+  --tinta-suave: #556271;
+  --linea: #cfd8e2;
+  --red: #b85400;
+  --red-fondo: #fde8d4;
+  --host: #1f5fbf;
+  --host-fondo: #dde8fa;
+  --ok: #1d7a45;
+  --ok-fondo: #ddf1e5;
+  --error: #b42318;
+  --error-fondo: #fbe3e0;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #10161d;
+    --superficie: #18212b;
+    --tinta: #e6ebf1;
+    --tinta-suave: #9aa8b6;
+    --linea: #2b3846;
+    --red: #ff9b52;
+    --red-fondo: #3a2513;
+    --host: #86b4ff;
+    --host-fondo: #172a46;
+    --ok: #6fd39a;
+    --ok-fondo: #12321f;
+    --error: #ff8f85;
+    --error-fondo: #3d1b18;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 4rem;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+code,
+.valor {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  font-weight: 600;
+}
+
+code {
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 4px;
+  padding: 0.05em 0.3em;
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--host);
+  outline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--tinta);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+/* ── Cabecera ── */
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--linea);
+}
+
+.marca {
+  font-weight: 700;
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.dificultad {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+}
+
+.dificultad button {
+  border: none;
+  background: none;
+  padding: 0.35rem 0.9rem;
+  min-height: 2.25rem;
+  color: var(--tinta-suave);
+}
+
+.dificultad button:hover {
+  color: var(--tinta);
+}
+
+.dificultad button[aria-checked="true"] {
+  background: var(--tinta);
+  color: var(--fondo);
+}
+
+/* ── Enunciado: lo primero que se ve ── */
+
+.enunciado {
+  padding: 2.75rem 0 2rem;
+}
+
+.enunciado h1 {
+  font-weight: 400;
+}
+
+.enunciado-texto {
+  display: block;
+  font-size: 1.0625rem;
+  color: var(--tinta-suave);
+}
+
+.direccion {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--mono);
+  font-size: clamp(2.1rem, 8.5vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+
+.prefijo {
+  color: var(--red);
+}
+
+.enunciado-meta {
+  margin-top: 0.85rem;
+  font-size: 0.9375rem;
+  color: var(--tinta-suave);
+}
+
+/* ── Respuestas ── */
+
+.campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem 1.25rem;
+}
+
+.campo label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin-bottom: 0.3rem;
+}
+
+.campo input {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 1.125rem;
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 2px solid var(--linea);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  min-height: 3rem;
+}
+
+.campo input::placeholder {
+  color: var(--linea);
+}
+
+.campo input:hover:not([readonly]) {
+  border-color: var(--tinta-suave);
+}
+
+.campo input:focus-visible {
+  outline: none;
+  border-color: var(--host);
+  box-shadow: 0 0 0 3px var(--host-fondo);
+}
+
+.campo input[readonly] {
+  cursor: default;
+}
+
+.campo-correcto input {
+  border-color: var(--ok);
+  background: var(--ok-fondo);
+}
+
+.campo-incorrecto input,
+.campo-formato input,
+.campo-vacio input {
+  border-color: var(--error);
+  background: var(--error-fondo);
+}
+
+.nota {
+  margin-top: 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.campo-correcto .nota {
+  color: var(--ok);
+}
+
+.campo-incorrecto .nota,
+.campo-formato .nota,
+.campo-vacio .nota {
+  color: var(--error);
+}
+
+.nota .valor {
+  color: var(--tinta);
+}
+
+.resumen {
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  font-weight: 600;
+}
+
+.resumen:focus {
+  outline: none;
+}
+
+.resumen-perfecto {
+  background: var(--ok-fondo);
+  border-color: transparent;
+  color: var(--ok);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.5rem;
+}
+
+button.primario,
+button.secundario {
+  min-height: 3rem;
+  padding: 0.6rem 1.4rem;
+  border: 2px solid var(--tinta);
+}
+
+button.primario {
+  background: var(--tinta);
+  color: var(--fondo);
+}
+
+button.primario:hover {
+  background: var(--host);
+  border-color: var(--host);
+  color: #fff;
+}
+
+button.secundario {
+  background: none;
+}
+
+button.secundario:hover {
+  background: var(--superficie);
+}
+
+button.enlace {
+  border: none;
+  background: none;
+  padding: 0.25rem 0;
+  color: var(--host);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+
+/* ── Explicación ── */
+
+.explicacion {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--tinta);
+}
+
+.explicacion h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.pasos {
+  list-style: none;
+  counter-reset: paso;
+  margin: 1.5rem 0 0;
+  padding: 0;
+}
+
+.pasos > li {
+  counter-increment: paso;
+  position: relative;
+  padding-left: 2.75rem;
+  padding-bottom: 2rem;
+}
+
+.pasos > li::before {
+  content: counter(paso);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tinta);
+  color: var(--fondo);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.pasos h3 {
+  font-size: 1.125rem;
+  line-height: 1.9rem;
+}
+
+.pasos p {
+  margin-top: 0.5rem;
+  max-width: 38rem;
+}
+
+/* Tira de bits: el elemento distintivo */
+
+.tira {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.tira-fila {
+  display: grid;
+  grid-template-columns: 5.5rem auto 1fr;
+  align-items: center;
+  gap: 0 0.75rem;
+  padding: 0.3rem 0;
+}
+
+.tira-fila.destacada {
+  border-top: 1px dashed var(--linea);
+}
+
+.tira-fila.destacada + .tira-fila.destacada {
+  border-top: none;
+}
+
+.tira-etiqueta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+
+.tira-bits {
+  display: inline-flex;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.tira-octeto {
+  display: inline-flex;
+}
+
+.bit {
+  display: inline-block;
+  width: 1.15ch;
+  text-align: center;
+  padding: 0.05rem 0;
+}
+
+.bit-red {
+  background: var(--red-fondo);
+  color: var(--red);
+  font-weight: 700;
+}
+
+.bit-host {
+  background: var(--host-fondo);
+  color: var(--host);
+}
+
+.bit-limite {
+  box-shadow: 2px 0 0 0 var(--tinta);
+}
+
+.tira-decimal {
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.leyenda-bits {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+}
+
+.muestra {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 3px;
+}
+
+.muestra + .muestra,
+.leyenda-bits .muestra:nth-of-type(2) {
+  margin-left: 0.75rem;
+}
+
+.muestra-red {
+  background: var(--red-fondo);
+  border: 1.5px solid var(--red);
+}
+
+.muestra-host {
+  background: var(--host-fondo);
+  border: 1.5px solid var(--host);
+}
+
+/* Bloques del atajo decimal */
+
+.bloques {
+  display: flex;
+  gap: 4px;
+  margin-top: 1rem;
+  max-width: 30rem;
+}
+
+.bloque {
+  position: relative;
+  flex: 1;
+  height: 3.25rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.35rem;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--tinta-suave);
+}
+
+.bloque-actual {
+  background: var(--red-fondo);
+  border-color: var(--red);
+  color: var(--red);
+  font-weight: 700;
+}
+
+.bloque-marca {
+  position: absolute;
+  top: -0.7rem;
+  transform: translateX(-50%);
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  background: var(--tinta);
+  color: var(--fondo);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.bloque-marca::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-bottom: none;
+  border-top-color: var(--tinta);
+}
+
+/* ── Pie ── */
+
+.pie {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--linea);
+  font-size: 0.9375rem;
+  color: var(--tinta-suave);
+}
+
+@media (max-width: 34rem) {
+  .campos {
+    grid-template-columns: 1fr;
+  }
+
+  .enunciado {
+    padding-top: 2rem;
+  }
+
+  .pasos > li {
+    padding-left: 0;
+    padding-top: 2.4rem;
+  }
+
+  .tira {
+    padding: 0.75rem;
+  }
+
+  .tira-fila {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "etiqueta decimal"
+      "bits bits";
+    padding: 0.4rem 0;
+  }
+
+  .tira-etiqueta {
+    grid-area: etiqueta;
+  }
+
+  .tira-decimal {
+    grid-area: decimal;
+  }
+
+  .tira-bits {
+    grid-area: bits;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    margin-top: 0.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
