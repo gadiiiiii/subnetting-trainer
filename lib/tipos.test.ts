@@ -1,3 +1,4 @@
+import { crearAzar } from "./azar";
 import { describe, expect, it } from "vitest";
 import { explicarBinario, generarBinario, VALORES_MASCARA } from "./binario";
 import {
@@ -27,6 +28,8 @@ import {
   solucion,
   tipoPara,
   TIPOS,
+  TIPOS_IPV4,
+  TIPOS_IPV6,
   type Ejercicio,
 } from "./tipos";
 import { explicarWildcard, generarWildcard } from "./wildcard";
@@ -60,20 +63,35 @@ describe("todos los tipos", () => {
 });
 
 describe("modo mixto", () => {
-  it("el tipo sale de la semilla y aparecen los cinco tipos", () => {
-    const vistos = new Set<string>();
-    for (let i = 0; i < 200; i++) {
-      const e = generarEjercicio("mixto", `m${i}`, "media");
-      expect(e.tipo).toBe(tipoPara("mixto", `m${i}`));
-      expect(generarEjercicio("mixto", `m${i}`, "media")).toEqual(e);
-      vistos.add(e.tipo);
+  it("cada mezcla usa solo sus tipos y aparecen todos", () => {
+    const casos = [
+      ["mixto", TIPOS_IPV4],
+      ["mixto-ipv6", TIPOS_IPV6],
+      ["mixto-todo", TIPOS],
+    ] as const;
+    for (const [mezcla, tipos] of casos) {
+      const vistos = new Set<string>();
+      for (let i = 0; i < 300; i++) {
+        const e = generarEjercicio(mezcla, `m${i}`, "media");
+        expect(e.tipo).toBe(tipoPara(mezcla, `m${i}`));
+        expect(generarEjercicio(mezcla, `m${i}`, "media")).toEqual(e);
+        vistos.add(e.tipo);
+      }
+      expect([...vistos].sort()).toEqual([...tipos].sort());
     }
-    expect(vistos.size).toBe(TIPOS.length);
+  });
+
+  it("los enlaces antiguos de mixto siguen dando el mismo tipo", () => {
+    // Valores calculados con la versión anterior (solo IPv4).
+    expect(["m1", "m2", "m3", "m4", "m5"].map((s) => tipoPara("mixto", s))).toEqual(
+      ["m1", "m2", "m3", "m4", "m5"].map((s) => crearAzar(`mixto:${s}`).elegir(TIPOS_IPV4)),
+    );
   });
 
   it("valida la selección que viene en la URL", () => {
     expect(esSeleccion("mixto")).toBe(true);
     expect(esSeleccion("wildcard")).toBe(true);
+    expect(esSeleccion("mixto-ipv6")).toBe(true);
     expect(esSeleccion("ipv6")).toBe(false);
     expect(esSeleccion(undefined)).toBe(false);
   });
@@ -192,10 +210,19 @@ describe("examen", () => {
   it("en mixto reparte los tipos parejo: dos de cada uno, en orden distinto según la semilla", () => {
     for (const semilla of ["a", "b", "c"]) {
       const tipos = generarExamen("mixto", "facil", semilla).map((e) => e.tipo);
-      for (const t of TIPOS) expect(tipos.filter((x) => x === t)).toHaveLength(2);
+      for (const t of TIPOS_IPV4) expect(tipos.filter((x) => x === t)).toHaveLength(2);
     }
     const orden = (s: string) => generarExamen("mixto", "facil", s).map((e) => e.tipo).join();
     expect(new Set(["a", "b", "c", "d"].map(orden)).size).toBeGreaterThan(1);
+  });
+
+  it("en mixto IPv6 y mixto todo reparte lo más parejo posible", () => {
+    for (const semilla of ["a", "b", "c"]) {
+      const v6 = generarExamen("mixto-ipv6", "media", semilla).map((e) => e.tipo);
+      for (const t of TIPOS_IPV6) expect(v6.filter((x) => x === t).length).toBeGreaterThanOrEqual(3);
+      const todo = generarExamen("mixto-todo", "media", semilla).map((e) => e.tipo);
+      for (const t of TIPOS) expect(todo.filter((x) => x === t).length).toBeGreaterThanOrEqual(1);
+    }
   });
 
   it("con un solo tipo, todos los ejercicios son de ese tipo", () => {

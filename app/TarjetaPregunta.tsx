@@ -28,7 +28,11 @@ export default function TarjetaPregunta({
             key={i}
             className={cn(
               "mt-1 flex flex-wrap items-baseline gap-x-3 font-mono font-bold tracking-tight [overflow-wrap:anywhere]",
-              varias ? "text-[clamp(1.6rem,6vw,2.5rem)] leading-tight" : "text-[clamp(2rem,8vw,3.5rem)] leading-[1.1]",
+              enunciado.compacto
+                ? "text-[clamp(1.15rem,4.6vw,1.6rem)] leading-snug"
+                : varias
+                  ? "text-[clamp(1.6rem,6vw,2.5rem)] leading-tight"
+                  : "text-[clamp(2rem,8vw,3.5rem)] leading-[1.1]",
             )}
           >
             {l.etiqueta && (
@@ -37,7 +41,17 @@ export default function TarjetaPregunta({
               </span>
             )}
             <span>
-              {l.valor}
+              {/* Permite cortar la línea después de cada ":" en direcciones largas. */}
+              {l.valor.split(":").map((parte, j, todas) => (
+                <span key={j}>
+                  {parte}
+                  {j < todas.length - 1 && (
+                    <>
+                      :<wbr />
+                    </>
+                  )}
+                </span>
+              ))}
               {l.acento && <span className="text-red">{l.acento}</span>}
             </span>
           </span>

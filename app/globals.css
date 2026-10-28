@@ -27,6 +27,10 @@
   --success-soft: #ddf1e5;
   --destructive: #b42318;
   --destructive-soft: #fbe3e0;
+  /* Escala secuencial del calendario de práctica: un solo tono, de claro a oscuro. */
+  --calor-1: #f6c79e;
+  --calor-2: #e08a45;
+  --calor-3: #a64b00;
   --radius: 10px;
   color-scheme: light;
 }
@@ -54,6 +58,9 @@
     --success-soft: #12321f;
     --destructive: #ff8f85;
     --destructive-soft: #3d1b18;
+    --calor-1: #5a3315;
+    --calor-2: #a8612a;
+    --calor-3: #ff9b52;
     color-scheme: dark;
   }
 }
@@ -80,6 +87,9 @@
   --color-success-soft: var(--success-soft);
   --color-destructive: var(--destructive);
   --color-destructive-soft: var(--destructive-soft);
+  --color-calor-1: var(--calor-1);
+  --color-calor-2: var(--calor-2);
+  --color-calor-3: var(--calor-3);
 
   --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;

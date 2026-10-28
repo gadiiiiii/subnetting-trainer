@@ -40,6 +40,8 @@ export interface Enunciado {
   pregunta: string;
   lineas: { valor: string; acento?: string; etiqueta?: string }[];
   nota?: string;
+  /** Datos largos (direcciones IPv6): se muestran en un tamaño menor. */
+  compacto?: boolean;
 }
 
 export type ResultadoCampo =

@@ -30,6 +30,7 @@ Esta dirección sale del propio proyecto y de patrones revisados de apps educati
 | `success-soft` | `#ddf1e5` | `#12321f` | Fondo de campo correcto y de la franja |
 | `destructive` | `#b42318` | `#ff8f85` | Respuesta incorrecta, acciones de borrar |
 | `destructive-soft` | `#fbe3e0` | `#3d1b18` | Fondo de campo incorrecto y de la franja |
+| `calor-1` / `calor-2` / `calor-3` | `#f6c79e` / `#e08a45` / `#a64b00` | `#5a3315` / `#a8612a` / `#ff9b52` | Escala secuencial del calendario de práctica (1–4, 5–9 y 10 o más ejercicios en el día). Sin práctica: `muted` |
 
 Todo el texto cumple contraste 4,5:1 sobre su fondo (verificado: el naranjo más bajo da 4,87:1 sobre `red-soft`). El naranjo nunca es un botón: las acciones siempre son azules.
 
@@ -75,6 +76,7 @@ Los componentes base siguen la estructura de **shadcn/ui** (`components/ui/`, Ra
 - **Barra superior:** marca, pestañas Práctica / Examen, racha (ícono de llama y número) y meta del día (barra de progreso naranja «4 de 10»).
 - **Selector de ejercicio:** un Select con el tipo, un ToggleGroup con la dificultad y un Switch para el cronómetro, en una sola fila que se ajusta en móvil.
 - **Explicación:** pasos numerados (son una secuencia), dentro de un Accordion que se abre solo cuando hubo errores.
+- **Progreso:** cifras en monoespaciada grande con su etiqueta encima; barras horizontales de un solo color (`red`) para el porcentaje de respuestas correctas, siempre con el número escrito al lado; resultados recientes como cuadros con ícono de check o cruz (nunca solo color); calendario de 12 semanas con la escala `calor` y tooltip con la fecha y la cantidad.
 - **Avisos breves (toast):** solo para confirmar acciones sin otro efecto visible, como «Enlace copiado».
 
 ## Movimiento

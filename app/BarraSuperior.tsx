@@ -7,7 +7,7 @@ export default function BarraSuperior({
   actual,
   racha,
 }: {
-  actual: "practica" | "examen";
+  actual: "practica" | "examen" | "progreso";
   /** null mientras no se lee el progreso guardado. */
   racha: number | null;
 }) {
@@ -26,20 +26,20 @@ export default function BarraSuperior({
 
   return (
     <header className="border-b border-border">
-      <div className="mx-auto flex max-w-[44rem] items-end justify-between gap-4 px-4 pt-4">
-        <div className="flex items-end gap-6">
-          <p className="titulo pb-3 font-bold">
-            Subnetting<span className="text-red">/</span>
-            <span className="text-muted-foreground">CCNA</span>
-          </p>
-          <nav className="flex gap-4" aria-label="Modo">
-            {pestaña("/", "Práctica", actual === "practica")}
-            {pestaña("/examen", "Examen", actual === "examen")}
-          </nav>
-        </div>
+      {/* En el celular, las pestañas bajan a una segunda fila. */}
+      <div className="mx-auto flex max-w-[44rem] flex-wrap items-end justify-between gap-x-6 px-4 pt-4">
+        <p className="titulo order-1 pb-3 font-bold">
+          Subnetting<span className="text-red">/</span>
+          <span className="text-muted-foreground">CCNA</span>
+        </p>
+        <nav className="order-3 flex w-full gap-5 sm:order-2 sm:mr-auto sm:w-auto sm:gap-4" aria-label="Modo">
+          {pestaña("/", "Práctica", actual === "practica")}
+          {pestaña("/examen", "Examen", actual === "examen")}
+          {pestaña("/progreso", "Progreso", actual === "progreso")}
+        </nav>
         <p
           className={cn(
-            "mb-3 inline-flex items-center gap-1 font-mono text-sm font-bold",
+            "order-2 mb-3 inline-flex items-center gap-1 font-mono text-sm font-bold sm:order-3",
             racha ? "text-red" : "text-muted-foreground",
             racha === null && "invisible",
           )}

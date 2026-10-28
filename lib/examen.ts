@@ -1,6 +1,6 @@
 import { contarCorrectas, totalCampos, type Correccion, type Dificultad } from "./ejercicio";
 import { crearAzar } from "./azar";
-import { TIPOS, generarDeTipo, generarEjercicio, type Ejercicio, type Seleccion } from "./tipos";
+import { esMezcla, generarDeTipo, generarEjercicio, tiposDe, type Ejercicio, type Seleccion } from "./tipos";
 
 /**
  * Modo examen: una serie fija de ejercicios con cronómetro. La serie sale de
@@ -10,8 +10,9 @@ import { TIPOS, generarDeTipo, generarEjercicio, type Ejercicio, type Seleccion 
 export const PREGUNTAS_EXAMEN = 10;
 
 /**
- * En modo mixto los tipos se reparten parejo (con 10 preguntas, dos de cada
- * uno) y se barajan, para que el examen no quede cargado a un solo tipo.
+ * En las mezclas, los tipos se reparten lo más parejo posible (con 10
+ * preguntas y 5 tipos, dos de cada uno) y se barajan, para que el examen no
+ * quede cargado a un solo tipo.
  */
 export function generarExamen(
   seleccion: Seleccion,
@@ -20,15 +21,20 @@ export function generarExamen(
   cantidad = PREGUNTAS_EXAMEN,
 ): Ejercicio[] {
   const semillaDe = (i: number) => `${semilla}-${i + 1}`;
-  if (seleccion !== "mixto") {
+  if (!esMezcla(seleccion)) {
     return Array.from({ length: cantidad }, (_, i) => generarEjercicio(seleccion, semillaDe(i), dificultad));
   }
-  const tipos = Array.from({ length: cantidad }, (_, i) => TIPOS[i % TIPOS.length]);
   const azar = crearAzar(`examen:${semilla}`);
-  for (let i = tipos.length - 1; i > 0; i--) {
-    const j = azar.entero(0, i);
-    [tipos[i], tipos[j]] = [tipos[j], tipos[i]];
-  }
+  const barajar = <T,>(lista: T[]) => {
+    for (let i = lista.length - 1; i > 0; i--) {
+      const j = azar.entero(0, i);
+      [lista[i], lista[j]] = [lista[j], lista[i]];
+    }
+    return lista;
+  };
+  // Primero se baraja el orden de los tipos, para que los que se repiten de más no sean siempre los mismos.
+  const base = seleccion === "mixto" ? [...tiposDe(seleccion)] : barajar([...tiposDe(seleccion)]);
+  const tipos = barajar(Array.from({ length: cantidad }, (_, i) => base[i % base.length]));
   return tipos.map((tipo, i) => generarDeTipo(tipo, semillaDe(i), dificultad));
 }
 

@@ -14,10 +14,12 @@ import {
   corregir,
   descripcionSeleccion,
   enunciado,
+  esMezcla,
   generarEjercicio,
   nombreSeleccion,
   solucion,
   type Seleccion,
+  TIPOS_IPV6,
 } from "@/lib/tipos";
 import { guardar, leer } from "./almacen";
 import BarraSuperior from "./BarraSuperior";
@@ -28,6 +30,7 @@ import Reloj from "./Reloj";
 import Respuestas from "./Respuestas";
 import SelectorEjercicio from "./SelectorEjercicio";
 import TarjetaPregunta from "./TarjetaPregunta";
+import { useEstadisticas } from "./useEstadisticas";
 import { useProgreso } from "./useProgreso";
 
 type Estado = "respondiendo" | "revisado" | "solucion";
@@ -54,6 +57,7 @@ export default function Practica({
   const primerCampo = useRef<HTMLElement | null>(null);
   const continuar = useRef<HTMLButtonElement>(null);
   const progreso = useProgreso();
+  const estadisticas = useEstadisticas();
 
   const ejercicio = useMemo(() => generarEjercicio(seleccion, semilla, dificultad), [seleccion, semilla, dificultad]);
   const defs = campos(ejercicio);
@@ -106,6 +110,13 @@ export default function Practica({
       cronometrados: s.cronometrados + (cronometro ? 1 : 0),
     }));
     registrar();
+    estadisticas.intento({
+      tipo: ejercicio.tipo,
+      dificultad,
+      correccion: c,
+      etiquetas: Object.fromEntries(defs.map((d) => [d.id, d.etiqueta])),
+      segundos: cronometro ? segundos : null,
+    });
     requestAnimationFrame(() => continuar.current?.focus());
   }
 
@@ -114,6 +125,7 @@ export default function Practica({
     setEstado("solucion");
     setFin(Date.now());
     setSesion((s) => ({ ...s, resueltos: s.resueltos + 1 }));
+    estadisticas.solucionVista(ejercicio.tipo, dificultad);
     requestAnimationFrame(() => continuar.current?.focus());
   }
 
@@ -185,7 +197,7 @@ export default function Practica({
 
         <div className="mt-6">
           <TarjetaPregunta
-            tipo={seleccion === "mixto" ? `Mixto: ${nombreSeleccion(ejercicio.tipo)}` : nombreSeleccion(seleccion)}
+            tipo={esMezcla(seleccion) ? `${nombreSeleccion(seleccion)}: ${nombreSeleccion(ejercicio.tipo)}` : nombreSeleccion(seleccion)}
             enunciado={enunciado(ejercicio)}
             extra={
               <>
@@ -224,8 +236,18 @@ export default function Practica({
 
         <p className="mt-12 border-t border-border pt-4 text-sm text-muted-foreground">
           Cada ejercicio sale de una semilla que queda en la dirección de la página: si compartes el enlace, la otra
-          persona ve el mismo ejercicio. La máscara se puede escribir como <code className="font-mono">255.255.255.224</code>{" "}
-          o <code className="font-mono">/27</code>.
+          persona ve el mismo ejercicio.{" "}
+          {TIPOS_IPV6.includes(ejercicio.tipo) ? (
+            <>
+              Las direcciones IPv6 se pueden escribir en mayúsculas o minúsculas; donde se pide la forma abreviada, cuenta
+              la de la RFC 5952.
+            </>
+          ) : (
+            <>
+              La máscara se puede escribir como <code className="font-mono">255.255.255.224</code> o{" "}
+              <code className="font-mono">/27</code>.
+            </>
+          )}
         </p>
 
       <Franja

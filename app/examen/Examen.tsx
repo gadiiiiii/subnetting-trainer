@@ -16,7 +16,16 @@ import {
   resumirExamen,
   type RespuestaExamen,
 } from "@/lib/examen";
-import { campos, corregir, descripcionSeleccion, enunciado, nombreSeleccion, type Seleccion } from "@/lib/tipos";
+import {
+  campos,
+  corregir,
+  descripcionSeleccion,
+  enunciado,
+  esMezcla,
+  nombreSeleccion,
+  type Mezcla,
+  type Seleccion,
+} from "@/lib/tipos";
 import { cn } from "@/lib/utils";
 import { guardar, leer } from "../almacen";
 import BarraSuperior from "../BarraSuperior";
@@ -27,9 +36,16 @@ import Reloj from "../Reloj";
 import Respuestas from "../Respuestas";
 import SelectorEjercicio from "../SelectorEjercicio";
 import TarjetaPregunta from "../TarjetaPregunta";
+import { useEstadisticas } from "../useEstadisticas";
 import { useProgreso } from "../useProgreso";
 
 type Fase = "inicio" | "rindiendo" | "fin";
+
+function repartoMezcla(m: Mezcla): string {
+  if (m === "mixto") return "dos ejercicios de cada tipo IPv4, en orden aleatorio";
+  if (m === "mixto-ipv6") return "tres o cuatro ejercicios de cada tipo IPv6, en orden aleatorio";
+  return "al menos uno de cada tipo, IPv4 e IPv6, en orden aleatorio";
+}
 
 interface RecordExamen {
   porcentaje: number;
@@ -64,6 +80,7 @@ export default function Examen({
   const primerCampo = useRef<HTMLElement | null>(null);
   const titulo = useRef<HTMLHeadingElement>(null);
   const progreso = useProgreso();
+  const estadisticas = useEstadisticas();
 
   const ejercicios = useMemo(() => generarExamen(seleccion, dificultad, semilla), [seleccion, dificultad, semilla]);
   const claveRecord = `record:${seleccion}:${dificultad}`;
@@ -127,6 +144,15 @@ export default function Examen({
       setRecord(nuevo);
       guardar(claveRecord, nuevo);
     }
+    estadisticas.intento(
+      todos.map((c, i) => ({
+        tipo: ejercicios[i].tipo,
+        dificultad,
+        correccion: c.correccion,
+        etiquetas: Object.fromEntries(campos(ejercicios[i]).map((d) => [d.id, d.etiqueta])),
+        segundos: c.segundos,
+      })),
+    );
     if (progreso.registrar(todos.length).cumplioMeta) {
       toast.success(`Cumpliste la meta de hoy: ${progreso.meta} ejercicios.`);
     }
@@ -179,9 +205,7 @@ export default function Examen({
             </h1>
             <p className="mt-2 text-muted-foreground">
               {nombreSeleccion(seleccion)}, dificultad {NOMBRE_DIFICULTAD[dificultad].toLowerCase()}:{" "}
-              {seleccion === "mixto"
-                ? "dos ejercicios de cada tipo, en orden aleatorio"
-                : descripcionSeleccion(seleccion, dificultad).toLowerCase()}
+              {esMezcla(seleccion) ? repartoMezcla(seleccion) : descripcionSeleccion(seleccion, dificultad).toLowerCase()}
               .
             </p>
             <ul className="mt-5 list-disc space-y-1.5 pl-5">
